@@ -37,8 +37,8 @@ var app = (function () {
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
             stompClient.subscribe('/topic/newpoint', function (eventbody) {
-                
-                
+                var pt=JSON.parse(eventbody.body);
+                addPointToCanvas(pt);
             });
         });
 
@@ -58,8 +58,9 @@ var app = (function () {
         publishPoint: function(px,py){
             var pt=new Point(px,py);
             console.info("publishing point at "+pt);
-            addPointToCanvas(pt);
+            //addPointToCanvas(pt);
             stompClient.send("/topic/newpoint", {}, JSON.stringify(pt));
+            alert(JSON.stringify(pt));
 
             //publicar el evento
         },
