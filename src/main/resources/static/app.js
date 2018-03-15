@@ -11,6 +11,7 @@ var app = (function () {
     var can = null;
     var rect = null;
     var ctx = null;
+    var id = 0;
     
     var addPointToCanvas = function (point) {        
         var canvas = document.getElementById("canvas");
@@ -41,13 +42,14 @@ var app = (function () {
         //subscribe to /topic/newpoint when connections succeed
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/newpoint', function (eventbody) {
+            stompClient.subscribe('/topic/newpoint.' + id, function (eventbody) {
                 //var pt=JSON.parse(eventbody.body);
                 //addPointToCanvas(pt);
                 ctx.beginPath();
                 ctx.arc(JSON.parse(eventbody.body).x, JSON.parse(eventbody.body).y, 1, 0, 2 * Math.PI);
                 ctx.stroke();
                 ctx.closePath();
+
             });
         });
 
@@ -56,13 +58,14 @@ var app = (function () {
     
     return {
 
-        init: function () {
+        init: function (paintId) {
             var can = document.getElementById("canvas");
             
             //websocket connection
             can = document.getElementById("canvas");
             //rect = can.getBoundingClientRect();
             ctx = can.getContext("2d");
+            id = paintId;
             connectAndSubscribe();
             
             if (window.PointerEvent) {
@@ -71,17 +74,18 @@ var app = (function () {
                     //var y = parseInt(event.pageY) - parseInt(rect.top);
                     var gmp = getMousePosition(event);
                     var pt = new Point(gmp.x, gmp.y);
-                    stompClient.send("/topic/newpoint", {}, JSON.stringify(pt));
+                    stompClient.send("/topic/newpoint." + id, {}, JSON.stringify(pt));
                 });
             }
         },
         
 
         publishPoint: function(px,py){
+            connectAndSubscribe();
             var pt=new Point(px,py);
             console.info("publishing point at "+pt);
             //addPointToCanvas(pt);
-            stompClient.send("/topic/newpoint", {}, JSON.stringify(pt));
+            stompClient.send("/topic/newpoint." + id, {}, JSON.stringify(pt));
             //alert(JSON.stringify(pt));
 
             //publicar el evento
